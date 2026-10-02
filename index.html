@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asaxiy · Moliya</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f2f4f8; --card:#ffffff; --card-2:#f6f8fb;
+  --ink:#0b1220; --ink-2:#4b5565; --muted:#8a94a6; --line:#e7ebf1; --track:#edf0f5;
+  --accent:#1652f0; --accent-soft:rgba(22,82,240,.10);
+  --s1:#2a78d6; --s1-soft:#b7d3f6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+  --pos:#2a78d6; --neg:#e34948; --neg-soft:#f5c2c1;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --good-t:#0a7a0a; --bad-t:#c42f2f;
+  --hdr-a:#1a5cff; --hdr-b:#0b3cc0;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.07);
+  --radius:20px;
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0b0f17; --card:#151b26; --card-2:#1b2230;
+  --ink:#f3f6fb; --ink-2:#b4bdcc; --muted:#7d8799; --line:#232b39; --track:#202837;
+  --accent:#6b9bff; --accent-soft:rgba(107,155,255,.14);
+  --s1:#3987e5; --s1-soft:#2a4a78; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --pos:#3987e5; --neg:#e66767; --neg-soft:#5a2a2a;
+  --good-t:#3cc43c; --bad-t:#f07a7a;
+  --hdr-a:#1b3f9e; --hdr-b:#0c2466;
+  --shadow:none;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0b0f17; --card:#151b26; --card-2:#1b2230;
+    --ink:#f3f6fb; --ink-2:#b4bdcc; --muted:#7d8799; --line:#232b39; --track:#202837;
+    --accent:#6b9bff; --accent-soft:rgba(107,155,255,.14);
+    --s1:#3987e5; --s1-soft:#2a4a78; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+    --pos:#3987e5; --neg:#e66767; --neg-soft:#5a2a2a;
+    --good-t:#3cc43c; --bad-t:#f07a7a;
+    --hdr-a:#1b3f9e; --hdr-b:#0c2466;
+    --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh}
+button,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- header ---------- */
+.hdr{background:linear-gradient(160deg,var(--hdr-a) 0%,var(--hdr-b) 100%);color:#fff;padding:14px 16px 18px;border-radius:0 0 28px 28px;position:relative;overflow:hidden}
+.hdr::after{content:"";position:absolute;right:-60px;top:-80px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+.hdr-row{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.brand{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+.brand .t1{font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
+.brand .t2{font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msel{position:relative;flex:none}
+.msel select{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:999px;padding:8px 30px 8px 13px;font-size:14px;font-weight:600;max-width:160px}
+.msel select option{color:#0b1220}
+.msel svg{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;pointer-events:none;opacity:.85}
+.hbtn{width:38px;height:38px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.busy .hbtn svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.hero{position:relative;z-index:1;margin-top:18px;min-height:104px}
+.hero .lbl{font-size:13px;opacity:.8}
+.hero .v{font-size:42px;font-weight:750;letter-spacing:-.03em;line-height:1.08;margin:4px 0 8px;font-variant-numeric:tabular-nums}
+.hero .meta{font-size:13px;opacity:.85;margin-top:8px}
+.hero .meta b{font-weight:650}
+.hpill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:650}
+.hpill i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.hpill.good i{background:#5ee08a} .hpill.bad i{background:#ff9b9b} .hpill.flat i{background:#dbe4ff}
+.hpill span{font-weight:400;opacity:.8}
+
+.chips{position:relative;z-index:1;display:flex;gap:8px;overflow-x:auto;margin:16px -16px 0;padding:0 16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips[hidden]{display:none}
+.chip{flex:none;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.10);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;white-space:nowrap;cursor:pointer}
+.chip.on{background:#fff;color:var(--hdr-b);border-color:#fff;font-weight:650}
+
+.progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;overflow:hidden;opacity:0;transition:opacity .2s}
+.busy .progress{opacity:1}
+.progress::after{content:"";position:absolute;inset:0 auto 0 0;width:40%;background:#7fb0ff;animation:prog 1.2s ease-in-out infinite}
+@keyframes prog{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+
+/* ---------- content ---------- */
+main{padding:14px 14px 104px;max-width:560px;margin:0 auto;transition:opacity .2s}
+.busy main{opacity:.75}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin:0 0 12px;box-shadow:var(--shadow);border:1px solid transparent}
+:root[data-theme="dark"] .card,:root[data-theme="dark"] .tile{border-color:var(--line)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .card,:root:not([data-theme="light"]) .tile{border-color:var(--line)}}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px}
+.ch h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.ch small{color:var(--muted);font-size:12px}
+.sectitle{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:20px 4px 10px}
+
+.rise{animation:rise .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.rise{animation:none}.bar,.tcol .b{transition:none!important}}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.tile{background:var(--card);border-radius:18px;padding:13px 13px 12px;box-shadow:var(--shadow);border:1px solid transparent;min-width:0}
+.tile .th{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ic{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.ic svg{width:17px;height:17px}
+.ic.green{background:rgba(12,163,12,.12);color:var(--good-t)} .ic.red{background:rgba(208,59,59,.12);color:var(--bad-t)} .ic.orange{background:rgba(235,104,52,.13);color:#d0571f} .ic.teal{background:rgba(27,175,122,.13);color:#14936a}
+.tile .lbl{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v{font-size:21px;font-weight:750;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tile .sub{font-size:12px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tile .dl{margin-top:8px}
+.tile .dl .vs{display:block;margin-top:3px}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:650;white-space:nowrap}
+.pill.good{background:rgba(12,163,12,.11);color:var(--good-t)} .pill.bad{background:rgba(208,59,59,.11);color:var(--bad-t)} .pill.flat{background:var(--card-2);color:var(--ink-2)}
+.vs{font-size:12px;color:var(--muted)}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:650;padding:2px 8px 2px 7px;border-radius:999px;color:var(--ink);background:var(--card-2);white-space:nowrap}
+.st i{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.st.good i{background:var(--good)} .st.warn i{background:var(--warn)} .st.crit i{background:var(--crit)}
+
+/* trend chart */
+.seg{display:flex;background:var(--card-2);border-radius:12px;padding:3px;gap:2px;margin:0 0 14px}
+.seg button{flex:1;border:0;background:none;border-radius:9px;padding:7px 4px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(16,24,40,.12)}
+.tplot{position:relative;height:168px;display:flex;gap:10px;padding:0 2px}
+.tzero{position:absolute;left:0;right:0;height:1px;background:var(--line)}
+.tcol{flex:1;position:relative;cursor:pointer;min-width:0}
+.tcol .b{position:absolute;left:50%;transform:translateX(-50%);width:min(34px,70%);background:var(--s1-soft);transition:height .6s cubic-bezier(.2,.7,.2,1),bottom .6s cubic-bezier(.2,.7,.2,1)}
+.tcol .b.p{border-radius:7px 7px 2px 2px}
+.tcol .b.n{background:var(--neg-soft);border-radius:2px 2px 7px 7px}
+.tcol.on .b.p{background:var(--s1)} .tcol.on .b.n{background:var(--neg)}
+.tcol .b.miss{background:none;border:1.5px dashed var(--line);border-radius:7px}
+.tcol .lv{position:absolute;left:0;right:0;text-align:center;font-size:11.5px;font-weight:650;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tcol.on .lv{color:var(--ink)}
+.tx{display:flex;gap:10px;padding:8px 2px 0;border-top:1px solid var(--line);margin-top:2px}
+.tx span{flex:1;text-align:center;font-size:12px;color:var(--muted)}
+.tx span.on{color:var(--ink);font-weight:700}
+.tnote{font-size:12px;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+
+/* P&L */
+.pl{display:grid;grid-template-columns:1fr auto 54px}
+.pl>div{padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.pl>div:nth-child(-n+3){border-top:0}
+.pl>div:nth-child(3n+2){padding-left:10px}
+.pl .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl .p{text-align:right;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;padding-top:10px}
+.pl .sub{color:var(--ink-2);font-size:13px;padding-left:14px}
+.pl .tot{font-weight:700}
+.pl .grand{font-weight:800;font-size:15.5px}
+
+/* bar lists */
+.bl{list-style:none;margin:0;padding:0}
+.bl li{padding:10px 0;border-top:1px solid var(--line)}
+.bl li:first-child{border-top:0;padding-top:2px}
+.bl .tr{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.bl .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl .val{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:650}
+.bl .val small{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
+.track{position:relative;height:8px;margin-top:7px;background:var(--track);border-radius:999px;overflow:hidden}
+.bar{position:absolute;top:0;height:8px;background:var(--s1);border-radius:0 4px 4px 0;left:0;width:0;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.track.div{background:none;overflow:visible}
+.track.div::before{content:"";position:absolute;left:0;right:0;top:0;bottom:0;background:var(--track);border-radius:999px}
+.track.div::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1.5px;background:var(--muted);opacity:.5}
+.track.div .bar.p{left:50%;background:var(--pos)}
+.track.div .bar.n{right:50%;left:auto;background:var(--neg);border-radius:4px 0 0 4px}
+.bl li.tap{cursor:pointer}
+
+/* stacked */
+.stack{display:flex;gap:2px;height:12px;margin:2px 0 14px;border-radius:6px;overflow:hidden}
+.stack span{display:block;height:100%;min-width:3px}
+.legend{display:grid;gap:9px}
+.legend .it{display:grid;grid-template-columns:12px 1fr auto auto;gap:8px;align-items:center;font-size:14px}
+.legend .sw{width:10px;height:10px;border-radius:3px}
+.legend .val{font-variant-numeric:tabular-nums;font-weight:650}
+.legend .pc{color:var(--muted);font-size:12px;width:48px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* key-value */
+.kv{display:grid;grid-template-columns:1fr auto}
+.kv>div{padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.kv>div:nth-child(-n+2){border-top:0}
+.kv .k small{display:block;color:var(--muted);font-size:12px}
+.kv .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:10px}
+.kv .r small{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.kv .grp{grid-column:1/-1;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:14px}
+
+/* insights */
+.ins .it{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.ins .it:first-child{border-top:0;padding-top:0}
+.ins .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:6px;flex:none}
+.ins .k{font-size:12px;color:var(--muted)}
+.ins .row{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:550}
+.ins .row .r{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
+
+/* branch cards */
+.bc{cursor:pointer}
+.bc .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.bc .nm{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15.5px}
+.bc .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--card-2);border-radius:14px;padding:10px 12px}
+.bc .g3 .k{font-size:11px;color:var(--muted)}
+.bc .g3 .v{font-size:14.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bc .ft{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px}
+.bc .ft .go{color:var(--accent);font-weight:600}
+
+details.card summary{cursor:pointer;font-size:15px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"+";color:var(--muted);font-weight:400;font-size:20px;line-height:1}
+details.card[open] summary::after{content:"−"}
+details.card[open] summary{margin-bottom:8px}
+
+.note{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.5}
+.banner{display:flex;gap:10px;align-items:flex-start;background:rgba(250,178,25,.13);border-radius:16px;padding:12px 14px;margin:0 0 12px;font-size:13px;color:var(--ink)}
+.foot{text-align:center;font-size:12px;color:var(--muted);padding:12px 0 4px;line-height:1.7}
+
+/* states */
+.center{display:grid;place-items:center;min-height:60vh;text-align:center;gap:14px;padding:24px}
+.center h2{margin:0;font-size:20px}
+.center p{margin:0;color:var(--ink-2);max-width:320px}
+.bigic{width:64px;height:64px;border-radius:20px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.bigic svg{width:30px;height:30px}
+.idbox{font-size:22px;font-weight:800;letter-spacing:.02em;background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:10px 18px;font-variant-numeric:tabular-nums}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:999px;padding:11px 20px;font-weight:650;cursor:pointer}
+.sk{background:linear-gradient(90deg,var(--card-2) 0%,var(--line) 50%,var(--card-2) 100%);background-size:200% 100%;animation:sh 1.2s linear infinite;border-radius:14px}
+@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
+.hsk{background:rgba(255,255,255,.18);border-radius:10px}
+
+/* tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);background:color-mix(in srgb,var(--card) 88%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(8px + env(safe-area-inset-bottom))}
+.tabbar button{border:0;background:none;display:grid;justify-items:center;gap:3px;padding:3px 0;font-size:10.5px;color:var(--muted);cursor:pointer}
+.tabbar .tic{width:46px;height:28px;border-radius:999px;display:grid;place-items:center;transition:background .2s}
+.tabbar button.on{color:var(--accent);font-weight:700}
+.tabbar button.on .tic{background:var(--accent-soft)}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:9px 14px;border-radius:999px;font-size:13px;z-index:70;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body data-k="<?= accessKey ?>" data-ym="<?= initYm ?>">
+<div class="progress"></div>
+<header class="hdr">
+  <div class="hdr-row">
+    <div class="brand"><span class="logo">A</span><div style="min-width:0"><div class="t1">Asaxiy Moliya</div><div class="t2" id="sub">Moliyaviy dashboard · USD</div></div></div>
+    <label class="msel"><select id="month" aria-label="Davrni tanlash"></select><svg viewBox="0 0 24 24" class="i"><path d="M6 9l6 6 6-6"/></svg></label>
+    <button id="refresh" class="hbtn" aria-label="Yangilash"><svg viewBox="0 0 24 24" class="i"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button>
+  </div>
+  <div class="hero" id="hero"><div class="hsk" style="width:120px;height:14px"></div><div class="hsk" style="width:210px;height:42px;margin:10px 0"></div><div class="hsk" style="width:160px;height:20px"></div></div>
+  <nav class="chips" id="chips" aria-label="Filial"></nav>
+</header>
+<main id="main"><div class="sk" style="height:220px;margin-bottom:12px"></div><div class="tiles"><div class="sk" style="height:110px"></div><div class="sk" style="height:110px"></div><div class="sk" style="height:110px"></div><div class="sk" style="height:110px"></div></div><div class="sk" style="height:300px"></div></main>
+<nav id="tabbar" class="tabbar" aria-label="Bo'limlar"></nav>
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  /* ===== sozlamalar ===== */
+  var API_URL = 'https://script.google.com/macros/s/AKfycbzXsWwak_0i6-PG5GXai__0OBNkCc2Ms0yZbcDaSb6Oo0ZjHFAYLa7DnCM6MLGguhUhLA/exec';
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var inTG = !!(tg && tg.initData);
+  var gsr = window.google && window.google.script && window.google.script.run;
+  function attr(n) { var v = document.body.getAttribute(n) || ''; return /^<\?/.test(v) ? '' : v; }
+  var qs = (function () { var o = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { if (!kv) return; var i = kv.indexOf('='); o[decodeURIComponent(i < 0 ? kv : kv.slice(0, i))] = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1)); }); return o; })();
+  var KEY = attr('data-k') || qs.key || '';
+  var INIT_YM = attr('data-ym') || qs.ym || '';
+
+  var LS = {
+    get: function (k) { try { return localStorage.getItem('axd:' + k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem('axd:' + k, v); } catch (e) {} }
+  };
+  function ic(path) { return '<svg viewBox="0 0 24 24" class="i">' + path + '</svg>'; }
+  var ICON = {
+    umumiy: '<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',
+    filiallar: '<path d="M3 9l1.8-5h14.4L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9.5 20v-6h5v6"/>',
+    pul: '<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><path d="M16 15h2"/>',
+    xarajat: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    balans: '<path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>',
+    up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    pulse: '<path d="M3 12h4l3 7 4-14 3 7h4"/>',
+    coin: '<circle cx="12" cy="12" r="8.5"/><path d="M14.6 9.6c-.4-.9-1.4-1.5-2.6-1.5-1.4 0-2.5.8-2.5 1.9s1.1 1.7 2.5 2 2.5.9 2.5 2-1.1 1.9-2.5 1.9c-1.2 0-2.2-.6-2.6-1.5M12 6.5v1.6M12 15.9v1.6"/>',
+    target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    tg: '<path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/><path d="M9 13l12-9"/>',
+    alert: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>'
+  };
+  var TABS = [
+    { id: 'umumiy', label: 'Umumiy', branch: true },
+    { id: 'filiallar', label: 'Filiallar', branch: false },
+    { id: 'pul', label: 'Pul', branch: false },
+    { id: 'xarajat', label: 'Xarajat', branch: true },
+    { id: 'balans', label: 'Balans', branch: true }
+  ];
+  var BRANCH_NAMES = {
+    'umumiy_asaxiy_baza': 'Umumiy baza',
+    'gijduvon_asaxiy_majmua_naqd': "G'ijduvon Majmua",
+    'gijduvon_asaxiy_naqd': "G'ijduvon",
+    'qiziltepa_asaxiy_naqd': 'Qiziltepa',
+    'qiziltepa_yangi_filial': 'Qiziltepa Yangi',
+    'shofirkon_asaxiy_naqd': 'Shofirkon',
+    'vobkent_asaxiy_filiali': 'Vobkent'
+  };
+  var state = { data: null, tab: LS.get('tab') || 'umumiy', br: LS.get('br') || '', metric: LS.get('metric') || 's', loading: false };
+  if (!TABS.some(function (t) { return t.id === state.tab; })) state.tab = 'umumiy';
+
+  /* ===== Telegram ===== */
+  function applyTheme() {
+    if (tg && tg.colorScheme) document.documentElement.setAttribute('data-theme', tg.colorScheme);
+    if (tg) {
+      var dark = tg.colorScheme === 'dark';
+      try { tg.setHeaderColor(dark ? '#1b3f9e' : '#1a5cff'); } catch (e) {}
+      try { tg.setBackgroundColor(dark ? '#0b0f17' : '#f2f4f8'); } catch (e) {}
+      try { tg.setBottomBarColor && tg.setBottomBarColor(dark ? '#151b26' : '#ffffff'); } catch (e) {}
+    }
+  }
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}
+    applyTheme();
+    try { tg.onEvent('themeChanged', applyTheme); } catch (e) {}
+  }
+  function haptic() { try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {} }
+
+  /* ===== yordamchi ===== */
+  function $(s) { return document.querySelector(s); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function norm(s) { return String(s == null ? '' : s).toLowerCase().replace(/[ʻʼ'`’‘"]/g, '').replace(/\s+/g, ' ').trim(); }
+  function isNum(x) { return typeof x === 'number' && isFinite(x); }
+  function sec(id) { return (state.data && state.data.sections && state.data.sections[id]) || { header: [], rows: [] }; }
+  function row(id, label) {
+    var L = norm(label), rows = sec(id).rows, i;
+    for (i = 0; i < rows.length; i++) if (norm(rows[i].l) === L) return rows[i];
+    for (i = 0; i < rows.length; i++) if (norm(rows[i].l).indexOf(L) === 0) return rows[i];
+    return null;
+  }
+  function col(id, raw) {
+    if (!raw) return 0;
+    var h = sec(id).header, n = norm(raw);
+    for (var i = 1; i < h.length; i++) if (norm(h[i]) === n) return i - 1;
+    return -1;
+  }
+  function get(id, label, raw) {
+    var r = row(id, label); if (!r) return null;
+    var i = col(id, raw); if (i < 0) return null;
+    return isNum(r.v[i]) ? r.v[i] : null;
+  }
+  function at(id, label, i) { var r = row(id, label); return r && isNum(r.v[i]) ? r.v[i] : null; }
+  function branches() { return sec(1).header.slice(2).filter(function (x) { return x && !/biriktirilmagan/i.test(x); }); }
+  function bname(raw) {
+    var k = norm(raw).replace(/\s+/g, '_');
+    if (BRANCH_NAMES[k]) return BRANCH_NAMES[k];
+    return String(raw).replace(/_/g, ' ').replace(/\b(asaxiy|naqd|filiali|filial)\b/gi, '').replace(/\s+/g, ' ').trim()
+      .toLowerCase().replace(/(^|\s)(\S)/g, function (m, a, b) { return a + b.toUpperCase(); }) || String(raw);
+  }
+  function prettyText(t) { var s = String(t || ''); branches().forEach(function (b) { if (s.indexOf(b) >= 0) s = s.split(b).join(bname(b)); }); return s; }
+  var NB = ' ';
+  function grp(n) { return Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, NB); }
+  function money(n) { return isNum(n) ? (n < 0 ? '−' : '') + '$' + grp(n) : '—'; }
+  function moneyS(n) { return isNum(n) ? (n > 0 ? '+' : n < 0 ? '−' : '') + '$' + grp(n) : '—'; }
+  function compact(n) {
+    if (!isNum(n)) return '—';
+    var a = Math.abs(n), s = n < 0 ? '−' : '', v, u;
+    if (a >= 1e6) { v = a / 1e6; u = 'M'; } else if (a >= 1e3) { v = a / 1e3; u = 'K'; } else { return s + '$' + Math.round(a); }
+    return s + '$' + (v >= 100 ? Math.round(v) : v.toFixed(1).replace('.', ',').replace(/,0$/, '')) + u;
+  }
+  function pct(p, d) {
+    if (!isNum(p)) return '—';
+    if (Math.abs(p) > 9.99) return (p < 0 ? '< −' : '> ') + '999%';
+    return (p < 0 ? '−' : '') + Math.abs(p * 100).toFixed(d == null ? 1 : d).replace('.', ',') + '%';
+  }
+  function ratio(n) { return isNum(n) ? n.toFixed(2).replace('.', ',').replace('-', '−') : '—'; }
+  var MONTHS_LC = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
+  function prevName() {
+    var p = state.data && state.data.period;
+    if (p && p.ym && /^01\./.test(p.start || '')) return MONTHS_LC[(Number(p.ym.split('-')[1]) + 10) % 12];
+    var m = String(sec(4).header[2] || '').match(/\(([^)]+)\)/);
+    return m ? m[1].toLowerCase() : "o'tgan oy";
+  }
+  function vsPrev() { return prevName() + 'ga nisbatan'; }
+  function dinfo(cur, prev, upGood) {
+    if (!isNum(cur) || !isNum(prev)) return null;
+    if (cur === prev) return { cls: 'flat', txt: "o'zgarishsiz", arrow: '■' };
+    var diff = cur - prev;
+    return {
+      cls: upGood == null ? 'flat' : ((diff > 0) === upGood ? 'good' : 'bad'),
+      arrow: diff > 0 ? '▲' : '▼',
+      txt: (prev === 0 || Math.abs(diff / prev) > 9.99) ? moneyS(diff) : pct(Math.abs(diff / prev))
+    };
+  }
+  function delta(cur, prev, upGood, vsText) {
+    var d = dinfo(cur, prev, upGood); if (!d) return '';
+    return '<span class="pill ' + d.cls + '">' + d.arrow + ' ' + d.txt + '</span> <span class="vs">' + esc(vsText || vsPrev()) + '</span>';
+  }
+  function hdelta(cur, prev, upGood, vsText) {
+    var d = dinfo(cur, prev, upGood); if (!d) return '';
+    return '<span class="hpill ' + d.cls + '"><i></i>' + d.arrow + ' ' + d.txt + ' <span>' + esc(vsText || vsPrev()) + '</span></span>';
+  }
+  function status(kind, text) { return '<span class="st ' + kind + '"><i></i>' + esc(text) + '</span>'; }
+  function margin(v, sales) { return isNum(sales) && sales > 0 ? pct(v) : '—'; }
+
+  /* ===== qismlar ===== */
+  function tile(o) {
+    return '<div class="tile rise"><div class="th"><span class="ic ' + (o.tone || '') + '">' + ic(ICON[o.icon] || ICON.coin) + '</span><span class="lbl">' + esc(o.label) + '</span></div>' +
+      '<div class="v">' + o.value + '</div>' + (o.sub ? '<div class="sub">' + o.sub + '</div>' : '') + (o.delta ? '<div class="dl">' + o.delta + '</div>' : '') + '</div>';
+  }
+  function card(title, body, right, extra) {
+    return '<section class="card rise"' + (extra || '') + '><div class="ch"><h3>' + esc(title) + '</h3>' + (right ? '<small>' + right + '</small>' : '') + '</div>' + body + '</section>';
+  }
+  function hero(label, value, deltaHtml, meta) {
+    return '<div class="lbl">' + esc(label) + '</div><div class="v">' + value + '</div>' + (deltaHtml || '') + (meta ? '<div class="meta">' + meta + '</div>' : '');
+  }
+  function barList(items, opt) {
+    opt = opt || {};
+    var fmt = opt.fmt || money;
+    if (!items.length) return '<p class="note">Ma\'lumot yo\'q</p>';
+    var diverging = items.some(function (i) { return i.value < 0; });
+    var max = Math.max.apply(null, items.map(function (i) { return Math.abs(i.value) || 0; })) || 1;
+    return '<ul class="bl">' + items.map(function (i) {
+      var w = i.value ? Math.max(Math.abs(i.value) / max * (diverging ? 50 : 100), 1) : 0;
+      var bar = diverging
+        ? '<div class="track div"><div class="bar ' + (i.value < 0 ? 'n' : 'p') + '" data-w="' + w.toFixed(2) + '"></div></div>'
+        : '<div class="track"><div class="bar" data-w="' + w.toFixed(2) + '"></div></div>';
+      return '<li' + (i.br ? ' class="tap" data-goto="' + esc(i.br) + '"' : '') + '><div class="tr"><span class="name">' + esc(i.name) +
+        '</span><span class="val">' + fmt(i.value) + (i.sub ? '<small>' + i.sub + '</small>' : '') + '</span></div>' + bar + '</li>';
+    }).join('') + '</ul>';
+  }
+  function stacked(parts) {
+    parts = parts.filter(function (p) { return isNum(p.value) && p.value > 0; });
+    var total = parts.reduce(function (s, p) { return s + p.value; }, 0);
+    if (!total) return '<p class="note">Bu davrda ma\'lumot yo\'q</p>';
+    return '<div class="stack" role="img" aria-label="' + esc(parts.map(function (p) { return p.name + ' ' + pct(p.value / total); }).join(', ')) + '">' +
+      parts.map(function (p) { return '<span style="flex:' + p.value + ' 1 0;background:var(' + p.color + ')"></span>'; }).join('') +
+      '</div><div class="legend">' + parts.map(function (p) {
+        return '<div class="it"><span class="sw" style="background:var(' + p.color + ')"></span><span>' + esc(p.name) + '</span><span class="val">' + money(p.value) + '</span><span class="pc">' + pct(p.value / total) + '</span></div>';
+      }).join('') + '</div>';
+  }
+
+  /* ===== oylar dinamikasi ===== */
+  function trendCard() {
+    var tr = (state.data && state.data.trend) || [];
+    if (!tr.length) return '';
+    var b = state.br || null;
+    var metrics = [{ k: 's', l: 'Sotuv' }, { k: 'n', l: 'Sof foyda' }, { k: 'e', l: 'Xarajat' }, b ? { k: 'k', l: 'Sklad' } : { k: 'c', l: 'Pul' }];
+    if (!metrics.some(function (m) { return m.k === state.metric; })) state.metric = 's';
+    var mk = state.metric;
+    var pts = tr.map(function (t) {
+      var s = t.sum, v = null;
+      if (s) {
+        if (mk === 'c') v = isNum(s.c) ? s.c : null;
+        else if (s[mk]) {
+          var idx = 0;
+          if (b) { idx = -1; for (var i = 0; i < s.cols.length; i++) if (norm(s.cols[i]) === norm(b)) idx = i; }
+          v = idx >= 0 && isNum(s[mk][idx]) ? s[mk][idx] : null;
+        }
+      }
+      return { ym: t.ym, short: t.short, v: v };
+    });
+    var vals = pts.filter(function (p) { return isNum(p.v); }).map(function (p) { return p.v; });
+    var maxP = Math.max(0, Math.max.apply(null, vals.concat([0]))), minN = Math.min(0, Math.min.apply(null, vals.concat([0])));
+    var range = (maxP - minN) || 1, H = 168, padT = 22, padB = minN < 0 ? 22 : 4, U = H - padT - padB;
+    var Z = padB + (-minN) / range * U;
+    var curYm = state.data.period.ym;
+    var cols = pts.map(function (p) {
+      var on = p.ym === curYm ? ' on' : '';
+      if (!isNum(p.v)) return '<div class="tcol' + on + '" data-ym="' + p.ym + '"><div class="b miss" style="bottom:' + Z + 'px;height:36px" data-h="36"></div><div class="lv" style="bottom:' + (Z + 40) + 'px">—</div></div>';
+      var h = Math.max(Math.abs(p.v) / range * U, p.v ? 3 : 0);
+      if (p.v >= 0) return '<div class="tcol' + on + '" data-ym="' + p.ym + '"><div class="b p" style="bottom:' + Z + 'px;height:0" data-h="' + h.toFixed(1) + '"></div><div class="lv" style="bottom:' + (Z + h + 5) + 'px">' + compact(p.v) + '</div></div>';
+      return '<div class="tcol' + on + '" data-ym="' + p.ym + '"><div class="b n" style="bottom:' + Z + 'px;height:0" data-h="' + h.toFixed(1) + '" data-neg="1"></div><div class="lv" style="bottom:' + Math.max(Z - h - 18, 0) + 'px">' + compact(p.v) + '</div></div>';
+    }).join('');
+    var seg = '<div class="seg">' + metrics.map(function (m) { return '<button data-metric="' + m.k + '" class="' + (m.k === mk ? 'on' : '') + '">' + m.l + '</button>'; }).join('') + '</div>';
+    var xs = '<div class="tx">' + pts.map(function (p) { return '<span class="' + (p.ym === curYm ? 'on' : '') + '">' + p.short + '</span>'; }).join('') + '</div>';
+    var missing = pts.some(function (p) { return !isNum(p.v); });
+    return card('Oylar dinamikasi', seg + '<div class="tplot"><div class="tzero" style="bottom:' + Z + 'px"></div>' + cols + '</div>' + xs +
+      '<div class="tnote"><span>Oyni bosib, o\'sha oyga o\'ting</span>' + (missing ? '<span>— hali hisoblanmagan</span>' : '') + '</div>', b ? esc(bname(b)) : 'barcha filiallar');
+  }
+
+  /* ===== bo'limlar ===== */
+  function cmpTotal(label) { var r = row(4, label); return r ? { cur: r.v[0], prev: r.v[1] } : {}; }
+  function cmpBranch(b) {
+    var r = row(5, b), v = r ? r.v : [];
+    return { sales: { cur: v[0], prev: v[1] }, gross: { cur: v[2], prev: v[3] }, net: { cur: v[4], prev: v[5] }, op: {}, exp: {} };
+  }
+
+  function vOverview() {
+    var b = state.br || null, nm = b ? bname(b) : 'Barcha filiallar';
+    var sales = get(1, 'Umumiy sotuv', b), cogs = get(1, 'Tannarx', b), gross = get(1, 'Yalpi foyda', b),
+      grossM = get(1, 'Yalpi marja', b), adm = get(1, 'ADM xarajatlar', b), pay = get(1, "To'lov tizimlari", b),
+      sal = get(1, 'Oylik ishchilar', b), exp = get(1, 'Umumiy xarajat', b), op = get(1, 'Operatsion foyda', b),
+      opM = get(1, 'Operatsion marja', b), pbt = get(1, 'Soliqgacha foyda', b), net = get(1, 'Sof foyda', b), netM = get(1, 'Sof marja', b);
+    var c = b ? cmpBranch(b) : { sales: cmpTotal('Umumiy sotuv'), gross: cmpTotal('Yalpi foyda'), op: cmpTotal('Operatsion foyda'), net: cmpTotal('Sof foyda'), exp: cmpTotal('Umumiy xarajat') };
+    var daily = get(2, "Kunlik o'rtacha sotuv", b), share = b ? get(2, 'Sotuvdagi ulushi', b) : null, expR = get(2, 'Umumiy xarajat / Sotuv', b);
+    var noSales = !(sales > 0);
+
+    var H = hero('Umumiy sotuv · ' + nm, money(sales), hdelta(c.sales.cur, c.sales.prev, true),
+      'Kunlik o\'rtacha <b>' + money(daily) + '</b>' + (share != null ? ' · Ulushi <b>' + pct(share) + '</b>' : ''));
+
+    var h = '';
+    if (noSales) h += '<div class="banner rise">' + ic(ICON.alert) + '<div><b>' + esc(state.data.period.label) + '</b> uchun sotuvlar hali kiritilmagan — marja va ulushlar hisoblanmaydi.</div></div>';
+    h += '<div class="tiles">' +
+      tile({ icon: 'up', label: 'Yalpi foyda', value: money(gross), sub: 'Marja ' + margin(grossM, sales), delta: delta(c.gross.cur, c.gross.prev, true) }) +
+      tile({ icon: 'pulse', tone: isNum(op) && op < 0 ? 'red' : 'green', label: 'Operatsion foyda', value: money(op), sub: 'Marja ' + margin(opM, sales) + (isNum(op) && op < 0 ? ' ' + status('crit', 'Zarar') : ''), delta: delta(c.op.cur, c.op.prev, true) }) +
+      tile({ icon: 'coin', tone: isNum(net) && net < 0 ? 'red' : 'green', label: 'Sof foyda', value: money(net), sub: 'Marja ' + margin(netM, sales) + (isNum(net) && net < 0 ? ' ' + status('crit', 'Zarar') : ''), delta: delta(c.net.cur, c.net.prev, true) }) +
+      tile({ icon: 'xarajat', tone: 'orange', label: 'Umumiy xarajat', value: money(exp), sub: noSales ? 'Sotuv yo\'q' : 'Sotuvning ' + pct(expR), delta: delta(c.exp.cur, c.exp.prev, false) });
+    if (!b) {
+      h += tile({ icon: 'pul', tone: 'teal', label: "Pul mablag'lari", value: money(at(7, "Pul mablag'lari", 1)), sub: 'Kassa + karta + bank', delta: delta(at(7, "Pul mablag'lari", 1), at(7, "Pul mablag'lari", 0), true, 'oy boshiga') }) +
+        tile({ icon: 'balans', label: "Sklad qoldig'i", value: money(get(3, "Sklad qoldig'i — oy oxiri", null)), sub: 'Oy oxiriga' });
+    } else {
+      h += tile({ icon: 'balans', label: "Sklad qoldig'i", value: money(get(3, "Sklad qoldig'i — oy oxiri", b)), sub: 'Oy oxiriga' }) +
+        tile({ icon: 'target', label: 'Zararsizlik nuqtasi', value: money(get(2, 'Zararsizlik nuqtasi', b)), sub: 'Kerakli sotuv hajmi' });
+    }
+    h += '</div>';
+    h += trendCard();
+
+    var other = isNum(pbt) && isNum(op) ? pbt - op : null, tax = isNum(net) && isNum(pbt) ? net - pbt : null;
+    var lines = [
+      ['Umumiy sotuv', sales, 'tot'], ['Murobaha', get(1, 'Murobaha', b), 'sub'], ['Avtomato', get(1, 'Avtomato', b), 'sub'],
+      ['Tannarx', isNum(cogs) ? -cogs : null, ''], ['Yalpi foyda', gross, 'tot'],
+      ['ADM xarajatlar', isNum(adm) ? -adm : null, ''], ['Oylik (ishchilar)', isNum(sal) ? -sal : null, ''],
+      ["To'lov tizimlari", isNum(pay) ? -pay : null, ''], ['Operatsion foyda', op, 'tot'],
+      ['Boshqa kirim/chiqim, kurs farqi', other, ''], ['Soliq', tax, ''], ['Sof foyda', net, 'grand']
+    ];
+    var pl = '<div class="pl">' + lines.filter(function (l) { return !(l[2] === '' && (!isNum(l[1]) || Math.abs(l[1]) < 0.5) && l[0] !== 'Tannarx'); }).map(function (l) {
+      var cls = l[2];
+      var p = isNum(l[1]) && !noSales ? pct(l[2] === 'tot' || l[2] === 'grand' ? l[1] / sales : Math.abs(l[1]) / sales) : '';
+      return '<div class="' + cls + '">' + esc(l[0]) + '</div><div class="r ' + cls + '">' + (l[2] === '' ? moneyS(l[1]) : money(l[1])) + '</div><div class="p">' + p + '</div>';
+    }).join('') + '</div>';
+    h += card('Foyda va zarar', pl, noSales ? '' : '% — sotuvdan');
+
+    var mur = get(1, 'Murobaha', b), avt = get(1, 'Avtomato', b), pre = get(1, "Peredoplata to'lov", b), cash = get(1, 'Naqd savdo', b);
+    h += card('Sotuv tarkibi', stacked([{ name: 'Murobaha', value: mur, color: '--s1' }, { name: 'Avtomato', value: avt, color: '--s2' }]) +
+      ((pre || cash) ? '<p class="note">Alohida qatorlar: Peredoplata to\'lov ' + money(pre) + ' · Naqd savdo ' + money(cash) + '</p>' : ''));
+
+    if (!b) {
+      var ins = sec(8).rows.map(function (r) {
+        var v = r.d[4] || '';
+        return '<div class="it"><span class="dot"></span><div style="flex:1;min-width:0"><div class="k">' + esc(r.l) + '</div><div class="row"><span>' + esc(prettyText(r.d[0])) + '</span>' + (v ? '<span class="r">' + esc(v) + '</span>' : '') + '</div></div></div>';
+      }).join('');
+      if (ins) h += card('Avtomatik xulosa', '<div class="ins">' + ins + '</div>');
+    }
+    return { hero: H, body: h };
+  }
+
+  function vBranches() {
+    var brs = branches().map(function (raw) {
+      return { raw: raw, name: bname(raw), sales: get(1, 'Umumiy sotuv', raw), gross: get(1, 'Yalpi foyda', raw), gm: get(1, 'Yalpi marja', raw),
+        net: get(1, 'Sof foyda', raw), share: get(2, 'Sotuvdagi ulushi', raw), r5: row(5, raw) };
+    });
+    var profit = brs.filter(function (x) { return isNum(x.net) && x.net > 0; }).length;
+    var loss = brs.filter(function (x) { return isNum(x.net) && x.net < 0; }).length;
+    var total = get(1, 'Umumiy sotuv', null);
+    var H = hero('Filiallar · jami sotuv', money(total), '<span class="hpill good"><i></i>' + profit + ' ta foydada</span> <span class="hpill bad"><i></i>' + loss + ' ta zararda</span>', 'Jami ' + brs.length + ' ta filial · bosib batafsil ko\'ring');
+
+    var bySales = brs.slice().sort(function (a, b) { return (b.sales || 0) - (a.sales || 0); });
+    var h = card('Sotuv', barList(bySales.map(function (x) { return { name: x.name, value: x.sales || 0, sub: pct(x.share), br: x.raw }; })), 'ulushi');
+    var byNet = brs.slice().sort(function (a, b) { return (b.net || 0) - (a.net || 0); });
+    h += card('Sof foyda', barList(byNet.map(function (x) { return { name: x.name, value: x.net || 0, br: x.raw }; })), 'ko\'k — foyda, qizil — zarar');
+    var byGm = brs.filter(function (x) { return x.sales > 0 && isNum(x.gm); }).sort(function (a, b) { return b.gm - a.gm; });
+    if (byGm.length) h += card('Yalpi marja', barList(byGm.map(function (x) { return { name: x.name, value: x.gm, br: x.raw }; }), { fmt: function (v) { return pct(v); } }), 'sotuvi bor filiallar');
+
+    h += '<div class="sectitle">Filiallar kesimida</div>';
+    h += bySales.map(function (x) {
+      var v = x.r5 ? x.r5.v : [];
+      return '<section class="card bc rise" data-goto="' + esc(x.raw) + '"><div class="hd"><span class="nm"><span class="ic">' + ic(ICON.filiallar) + '</span>' + esc(x.name) + '</span>' +
+        (isNum(x.net) && x.net !== 0 ? (x.net > 0 ? status('good', 'Foyda') : status('crit', 'Zarar')) : '') + '</div>' +
+        '<div class="g3"><div><div class="k">Sotuv</div><div class="v">' + money(x.sales) + '</div></div>' +
+        '<div><div class="k">Yalpi foyda</div><div class="v">' + money(x.gross) + '</div></div>' +
+        '<div><div class="k">Sof foyda</div><div class="v">' + money(x.net) + '</div></div></div>' +
+        '<div class="ft"><span>' + (delta(v[4], v[5], true) || '&nbsp;') + '</span><span class="go">Batafsil ›</span></div></section>';
+    }).join('');
+    return { hero: H, body: h };
+  }
+
+  function vCash() {
+    var start = at(7, "Pul mablag'lari", 0), end = at(7, "Pul mablag'lari", 1);
+    var H = hero("Pul mablag'lari · oy oxiri", money(end), hdelta(end, start, true, 'oy boshiga nisbatan'), 'Oy boshida <b>' + money(start) + '</b> · kompaniya bo\'yicha');
+    var acc = [
+      ['Asosiy kassa', 'Asosiy kassadagi naqd pul qoldig`i', '--s1'],
+      ["Do'kon kassalari", 'Kassadagi naqd pul qoldig`i', '--s2'],
+      ['Karta', 'Karta', '--s3'],
+      ['Bank', 'Bank', '--s4'],
+      ["Yo'ldagi pullar", "Yo'ldagi pullar", '--s5']
+    ].map(function (a) { var r = row(6, a[1]); return { name: a[0], s: r ? r.v[0] : null, e: r ? r.v[1] : null, color: a[2] }; });
+    var h = card('Tarkibi', stacked(acc.map(function (a) { return { name: a.name, value: a.e, color: a.color }; })) +
+      (acc.some(function (a) { return isNum(a.e) && a.e < 0; }) ? '<p class="note">Manfiy qoldiqlar grafikda ko\'rsatilmaydi.</p>' : ''), 'oy oxiri');
+    h += card('Hisoblar bo\'yicha', '<div class="kv">' + acc.map(function (a) {
+      return '<div class="k">' + esc(a.name) + '<small>oy boshi ' + money(a.s) + '</small></div><div class="r"><b>' + money(a.e) + '</b><small>' + (isNum(a.e) && isNum(a.s) && a.e !== a.s ? moneyS(a.e - a.s) : '&nbsp;') + '</small></div>';
+    }).join('') + '</div>');
+
+    function group(title, labels) {
+      var rs = labels.map(function (l) { return row(6, l); }).filter(function (r) { return r && ((isNum(r.v[0]) && r.v[0] !== 0) || (isNum(r.v[1]) && r.v[1] !== 0)); });
+      if (!rs.length) return '';
+      return '<div class="grp">' + esc(title) + '</div>' + rs.map(function (r) {
+        return '<div class="k">' + esc(r.l) + '<small>oy boshi ' + money(r.v[0]) + '</small></div><div class="r"><b>' + money(r.v[1]) + '</b><small>' + (isNum(r.v[2]) ? moneyS(r.v[2]) : '&nbsp;') + '</small></div>';
+      }).join('');
+    }
+    var deb = at(7, 'Debitorlik qarzlari', 1), liab = at(7, 'Majburiyatlar (jami)', 1);
+    h += '<div class="tiles">' + tile({ icon: 'up', label: 'Debitorlik (jami)', value: money(deb), sub: 'bizga qarzlar', delta: delta(deb, at(7, 'Debitorlik qarzlari', 0), null, 'oy boshiga') }) +
+      tile({ icon: 'xarajat', tone: 'orange', label: 'Majburiyatlar', value: money(liab), sub: 'bizning qarzlar', delta: delta(liab, at(7, 'Majburiyatlar (jami)', 0), false, 'oy boshiga') }) + '</div>';
+    h += card('Haqdorlik va qarzdorlik', '<div class="kv">' +
+      group('Aktiv tomonda', ["Ta'minotchilardan haqdorlik", 'Ishchilardan haqdorlik', 'Boshqa haqdorliklar', 'Murobaha debitorka', 'Avtomato debitorka', 'Divident haqdorlik']) +
+      group('Passiv tomonda', ["Ta'minotchilardan qarzdorlik", 'Mijozlardan qarzdorlik', 'Ishchilardan qarzdorlik', 'Boshqa qarzdorliklar', 'Fondlardan qarzdorlik', 'Divident qarzdorlik', 'Boshqa majburiyatlar']) +
+      '</div>');
+    return { hero: H, body: h };
+  }
+
+  function vExpenses() {
+    var b = state.br || null, nm = b ? bname(b) : 'Barcha filiallar';
+    var exp = get(1, 'Umumiy xarajat', b), adm = get(1, 'ADM xarajatlar', b), sal = get(1, 'Oylik ishchilar', b), pay = get(1, "To'lov tizimlari", b);
+    var r = get(2, 'Umumiy xarajat / Sotuv', b), c = b ? {} : cmpTotal('Umumiy xarajat'), sales = get(1, 'Umumiy sotuv', b);
+    var H = hero('Umumiy xarajat · ' + nm, money(exp), hdelta(c.cur, c.prev, false), sales > 0 ? 'Sotuvning <b>' + pct(r) + '</b> qismi' : 'Bu davrda sotuv yo\'q');
+    var h = card('Xarajat turlari', stacked([
+      { name: 'ADM xarajatlar', value: adm, color: '--s1' }, { name: 'Oylik (ishchilar)', value: sal, color: '--s2' }, { name: "To'lov tizimlari", value: pay, color: '--s3' }
+    ]) + (b ? '' : (function () {
+      var a = cmpTotal('ADM xarajatlar'), o = cmpTotal('Oylik ishchilar');
+      return '<p class="note">ADM: ' + (delta(a.cur, a.prev, false) || '—') + '<br>Oylik: ' + (delta(o.cur, o.prev, false) || '—') + '</p>';
+    })()));
+    var ci = col(9, b);
+    var items = ci < 0 ? [] : sec(9).rows.filter(function (x) { return !/^jami/i.test(x.l) && isNum(x.v[ci]) && x.v[ci] !== 0; })
+      .map(function (x) { return { name: x.l, value: x.v[ci] }; }).sort(function (a, b2) { return b2.value - a.value; });
+    var tot = items.reduce(function (s, x) { return s + x.value; }, 0);
+    var top = items.slice(0, 10);
+    if (items.length > 10) top.push({ name: 'Boshqalar (' + (items.length - 10) + ' ta)', value: items.slice(10).reduce(function (s, x) { return s + x.value; }, 0) });
+    top.forEach(function (x) { x.sub = tot ? pct(x.value / tot) : ''; });
+    h += card('ADM xarajatlar tarkibi', barList(top), 'ulushi');
+    if (!b) {
+      var brs = branches().map(function (raw) {
+        var sl = get(1, 'Umumiy sotuv', raw);
+        return { name: bname(raw), value: get(1, 'Umumiy xarajat', raw) || 0, sub: sl > 0 ? 'sotuvning ' + pct(get(2, 'Umumiy xarajat / Sotuv', raw)) : 'sotuv yo\'q', br: raw };
+      }).sort(function (a, b2) { return b2.value - a.value; });
+      h += card('Filiallar bo\'yicha', barList(brs));
+    }
+    return { hero: H, body: h };
+  }
+
+  function coefStatus(label, v) {
+    if (!isNum(v)) return '';
+    var L = norm(label);
+    var rules = [
+      ['joriy likvidlik', function (x) { return x >= 1.5 ? 'good' : x >= 1 ? 'warn' : 'crit'; }],
+      ['tez likvidlik', function (x) { return x >= 1 ? 'good' : x >= 0.7 ? 'warn' : 'crit'; }],
+      ['absolyut likvidlik', function (x) { return x >= 0.2 ? 'good' : x >= 0.1 ? 'warn' : 'crit'; }],
+      ['majburiyatlar / aktivlar', function (x) { return x <= 0.6 ? 'good' : x <= 0.8 ? 'warn' : 'crit'; }]
+    ];
+    for (var i = 0; i < rules.length; i++) if (L.indexOf(rules[i][0]) === 0) {
+      var k = rules[i][1](v);
+      return status(k, k === 'good' ? 'Normada' : k === 'warn' ? "E'tibor" : 'Xavf');
+    }
+    return '';
+  }
+  function coefFmt(label, v) {
+    if (!isNum(v)) return '—';
+    if (/%/.test(label)) return pct(v);
+    if (/kun/i.test(label)) return (v < 0 ? '−' : '') + Math.abs(Math.round(v)) + ' kun';
+    return ratio(v);
+  }
+
+  function vBalance() {
+    var b = state.br || null, nm = b ? bname(b) : 'Barcha filiallar';
+    var se = get(3, "Sklad qoldig'i — oy oxiri", b), ss = get(3, "Sklad qoldig'i — oy boshi", b);
+    var days = get(3, 'Sklad aylanish muddati', b), cover = get(3, 'Zaxira necha kunga', b), turns = get(3, 'Sklad aylanmasi', b);
+    var H = hero("Sklad qoldig'i · " + nm, money(se), hdelta(se, ss, null, 'oy boshiga nisbatan'),
+      'Aylanish <b>' + (isNum(days) ? Math.round(days) + ' kun' : '—') + '</b> · Zaxira <b>' + (isNum(cover) ? Math.round(cover) + ' kunga' : '—') + '</b> · Aylanma <b>' + ratio(turns) + '</b>');
+    var h = '';
+    if (!b) {
+      var st = branches().map(function (raw) { return { name: bname(raw), value: get(3, "Sklad qoldig'i — oy oxiri", raw) || 0, br: raw }; }).sort(function (a, c) { return c.value - a.value; });
+      var neg = st.filter(function (x) { return x.value < 0; });
+      h += card('Filiallar bo\'yicha sklad', barList(st) +
+        (neg.length ? '<p class="note">' + status('warn', 'Tekshiring') + ' Manfiy qoldiq: ' + esc(neg.map(function (x) { return x.name; }).join(', ')) + ' — kirim/chiqim hujjatlarida nomuvofiqlik bo\'lishi mumkin.</p>' : ''), 'oy oxiri');
+      var assets = at(6, 'JAMI AKTIVLAR', 1), liab = at(7, 'Majburiyatlar (jami)', 1), eq = at(7, 'Xususiy kapital', 1);
+      var aT = row(6, 'JAMI AKTIVLAR'), pT = row(6, 'JAMI PASSIVLAR');
+      var diff = aT && pT && isNum(aT.v[1]) && isNum(pT.v[1]) ? aT.v[1] - pT.v[1] : null;
+      h += '<div class="sectitle">Balans</div>';
+      if (isNum(diff) && Math.abs(diff) >= 1) h += '<div class="banner rise">' + ic(ICON.alert) + '<div><b>Balans teng emas:</b> aktiv − passiv = ' + moneyS(diff) + '. Kassa/karta yozuvlarida kontragent yoki toifa to\'g\'ri tanlanganini tekshiring.</div></div>';
+      h += '<div class="tiles">' +
+        tile({ icon: 'balans', label: 'Jami aktivlar', value: money(assets), sub: 'oy oxiri', delta: delta(assets, at(6, 'JAMI AKTIVLAR', 0), null, 'oy boshiga') }) +
+        tile({ icon: 'xarajat', tone: 'orange', label: 'Majburiyatlar', value: money(liab), sub: 'oy oxiri', delta: delta(liab, at(7, 'Majburiyatlar (jami)', 0), false, 'oy boshiga') }) +
+        tile({ icon: 'coin', tone: isNum(eq) && eq < 0 ? 'red' : 'green', label: 'Xususiy kapital', value: money(eq), sub: 'ustav + foyda' }) +
+        tile({ icon: 'target', tone: isNum(diff) && Math.abs(diff) >= 1 ? 'red' : 'green', label: 'Balans holati', value: isNum(diff) && Math.abs(diff) < 1 ? 'Teng' : moneyS(diff), sub: isNum(diff) && Math.abs(diff) < 1 ? status('good', 'Aktiv = Passiv') : status('crit', 'Farq bor') }) +
+        '</div>';
+      var coefLabels = ['Joriy likvidlik', 'Tez likvidlik', 'Absolyut likvidlik', 'Majburiyatlar / Aktivlar', 'Aktivlar rentabelligi', 'Kapital rentabelligi', 'Sklad aylanish muddati', "Ta'minotchilarga to'lash", 'Debitorlik aylanish', 'Pul aylanish sikli'];
+      h += card('Moliyaviy koeffitsientlar', '<div class="kv">' + coefLabels.map(function (l) {
+        var r = row(7, l); if (!r) return '';
+        var v = isNum(r.v[1]) ? r.v[1] : null;
+        return '<div class="k">' + esc(r.l) + '<small>' + esc(r.d[2] || '') + '</small></div><div class="r"><b>' + coefFmt(r.l, v) + '</b><small>' + (coefStatus(r.l, v) || '&nbsp;') + '</small></div>';
+      }).join('') + '</div>');
+      var grpName = '', A = '', P = '';
+      sec(6).rows.forEach(function (r) {
+        if (/^aktivlar$/i.test(r.l)) { grpName = 'A'; return; }
+        if (/^passivlar$/i.test(r.l)) { grpName = 'P'; return; }
+        if (/^balans farqi/i.test(r.l)) return;
+        var line = '<div class="k">' + esc(r.l) + '<small>oy boshi ' + money(r.v[0]) + '</small></div><div class="r"><b>' + money(r.v[1]) + '</b><small>' + (isNum(r.v[2]) && r.v[2] !== 0 ? moneyS(r.v[2]) : '&nbsp;') + '</small></div>';
+        if (grpName === 'A') A += line; else if (grpName === 'P') P += line;
+      });
+      if (A) h += '<details class="card rise"><summary>Aktivlar (batafsil)</summary><div class="kv">' + A + '</div></details>';
+      if (P) h += '<details class="card rise"><summary>Passivlar (batafsil)</summary><div class="kv">' + P + '</div></details>';
+    } else {
+      h += card('Sklad ko\'rsatkichlari', '<div class="kv">' +
+        '<div class="k">Oy boshi</div><div class="r"><b>' + money(ss) + '</b></div>' +
+        '<div class="k">Oy oxiri</div><div class="r"><b>' + money(se) + '</b></div>' +
+        '<div class="k">Aylanish muddati</div><div class="r"><b>' + (isNum(days) ? Math.round(days) + ' kun' : '—') + '</b></div>' +
+        '<div class="k">Zaxira yetadi</div><div class="r"><b>' + (isNum(cover) ? Math.round(cover) + ' kun' : '—') + '</b></div></div>' +
+        '<p class="note">Balans va koeffitsientlar kompaniya bo\'yicha umumiy — «Barchasi»ni tanlang.</p>');
+    }
+    return { hero: H, body: h };
+  }
+
+  function footer() {
+    var d = state.data, p = d.period;
+    return '<div class="foot">Davr: ' + esc(p.start) + ' — ' + esc(p.end) + ' (' + p.days + ' kun) · USD<br>Yangilandi: ' + esc(d.generatedAt) +
+      (!inTG && d.sheetUrl ? ' · <a href="' + esc(d.sheetUrl) + '" target="_blank" rel="noopener">Jadvalni ochish</a>' : '') + '</div>';
+  }
+
+  /* ===== qobiq ===== */
+  function renderHeader() {
+    var d = state.data;
+    $('#month').innerHTML = d.months.map(function (m) { return '<option value="' + m.ym + '"' + (m.ym === d.period.ym ? ' selected' : '') + '>' + esc(m.label) + '</option>'; }).join('');
+    $('#sub').textContent = state.br && TABS.filter(function (t) { return t.id === state.tab; })[0].branch ? bname(state.br) : 'Barcha filiallar';
+  }
+  function renderChips() {
+    var t = TABS.filter(function (x) { return x.id === state.tab; })[0];
+    var el = $('#chips');
+    if (!t || !t.branch) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = '<button class="chip' + (!state.br ? ' on' : '') + '" data-br="">Barchasi</button>' +
+      branches().map(function (b) { return '<button class="chip' + (state.br === b ? ' on' : '') + '" data-br="' + esc(b) + '">' + esc(bname(b)) + '</button>'; }).join('');
+    var on = el.querySelector('.chip.on');
+    if (on) el.scrollLeft = Math.max(0, on.offsetLeft - el.clientWidth / 2 + on.offsetWidth / 2);
+  }
+  function renderTabbar() {
+    $('#tabbar').innerHTML = TABS.map(function (t) {
+      return '<button data-tab="' + t.id + '" class="' + (t.id === state.tab ? 'on' : '') + '" aria-current="' + (t.id === state.tab ? 'page' : 'false') + '"><span class="tic">' + ic(ICON[t.id]) + '</span>' + esc(t.label) + '</button>';
+    }).join('');
+  }
+  function animate() {
+    var els = document.querySelectorAll('#main .rise');
+    for (var i = 0; i < els.length; i++) els[i].style.setProperty('--d', Math.min(i * 45, 400) + 'ms');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        document.querySelectorAll('#main .bar[data-w]').forEach(function (b) { b.style.width = b.getAttribute('data-w') + '%'; });
+        document.querySelectorAll('#main .tcol .b[data-h]').forEach(function (b) {
+          var h = parseFloat(b.getAttribute('data-h'));
+          if (b.getAttribute('data-neg')) { var z = parseFloat(b.style.bottom); b.style.bottom = (z - h) + 'px'; }
+          b.style.height = h + 'px';
+        });
+      });
+    });
+  }
+  function render(scrollTop) {
+    if (!state.data) return;
+    renderHeader(); renderChips(); renderTabbar();
+    var fn = { umumiy: vOverview, filiallar: vBranches, pul: vCash, xarajat: vExpenses, balans: vBalance }[state.tab] || vOverview;
+    var v;
+    try { v = fn(); } catch (e) { v = { hero: '', body: errorBox('Ko\'rsatishda xatolik: ' + e.message) }; }
+    $('#hero').innerHTML = v.hero;
+    $('#main').innerHTML = v.body + footer();
+    animate();
+    if (scrollTop) window.scrollTo(0, 0);
+  }
+  function errorBox(msg) {
+    return '<div class="center"><span class="bigic">' + ic(ICON.alert) + '</span><p>' + esc(msg) + '</p><button class="btn" data-retry="1">Qayta urinish</button></div>';
+  }
+  function screen(icon, title, text, extra) {
+    $('#hero').innerHTML = '<div class="lbl">Telegram orqali xavfsiz kirish</div>';
+    document.querySelector('.hero').style.minHeight = '0';
+    $('#chips').hidden = true;
+    $('#tabbar').style.display = 'none';
+    document.querySelector('.msel').style.display = 'none';
+    $('#refresh').style.display = 'none';
+    $('#main').innerHTML = '<div class="center"><span class="bigic">' + ic(ICON[icon]) + '</span><h2>' + esc(title) + '</h2><p>' + text + '</p>' + (extra || '') + '</div>';
+  }
+  function denied(d) {
+    var u = d.user || {};
+    if (d.code === 'not_allowed') {
+      screen('lock', 'Ruxsat kerak', 'Salom' + (u.name ? ', ' + esc(u.name) : '') + '! Dashboardni ko\'rish uchun administrator sizning Telegram ID\'ingizni ro\'yxatga qo\'shishi kerak.',
+        '<div class="idbox">' + esc(u.id) + '</div><button class="btn" data-copy="' + esc(u.id) + '">ID\'ni nusxalash</button>');
+    } else if (d.code === 'no_token') {
+      screen('alert', 'Bot hali sozlanmagan', 'Apps Script sozlamalarida <b>TG_BOT_TOKEN</b> kiritilmagan.');
+    } else if (d.code === 'expired') {
+      screen('alert', 'Sessiya eskirgan', 'Mini App\'ni yopib, bot menyusidan qayta oching.');
+    } else if (d.code === 'no_auth') {
+      screen('tg', 'Telegram orqali oching', 'Bu dashboard faqat Telegram bot ichida ishlaydi.');
+    } else {
+      screen('alert', 'Xatolik', esc(d.message || d.code || 'Noma\'lum xato'));
+    }
+  }
+  var toastT;
+  function toast(msg, ms) {
+    var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastT); if (ms) toastT = setTimeout(function () { t.classList.remove('show'); }, ms);
+  }
+  function setBusy(on, msg) {
+    document.body.classList.toggle('busy', on);
+    $('#month').disabled = on;
+    if (on && msg) toast(msg); else if (!on) $('#toast').classList.remove('show');
+  }
+
+  function fetchData(ym, force, ok, fail) {
+    if (gsr) {
+      gsr.withSuccessHandler(function (s) { try { ok(JSON.parse(s)); } catch (e) { fail(e); } }).withFailureHandler(fail).getDashboard(KEY, ym || '', !!force);
+      return;
+    }
+    if (!inTG && !KEY) { ok({ ok: false, code: 'no_auth' }); return; }
+    var q = '?action=data&ym=' + encodeURIComponent(ym || '') + (force ? '&force=1' : '') +
+      (inTG ? '&tg=' + encodeURIComponent(tg.initData) : '&key=' + encodeURIComponent(KEY));
+    var tries = 0;
+    (function go() {
+      tries++;
+      // Qayta urinishda force olib tashlanadi: server birinchi so'rovda hisoblab saqlab qo'ygan bo'ladi
+      var url = API_URL + (tries > 1 ? q.replace('&force=1', '') : q);
+      fetch(url).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(ok).catch(function (err) {
+        if (tries < 4) setTimeout(go, 2000 * tries); else fail(err);
+      });
+    })();
+  }
+  function dkey(ym) { return 'data:' + (ym || 'cur'); }
+  function dget(ym) { try { var v = localStorage.getItem('axd:' + dkey(ym)); if (!v) return null; var o = JSON.parse(v); return Date.now() - (o.__t || 0) < 7 * 864e5 ? o : null; } catch (e) { return null; } }
+  function dset(ym, d) { try { d.__t = Date.now(); localStorage.setItem('axd:' + dkey(ym), JSON.stringify(d)); } catch (e) {} }
+  function load(ym, force) {
+    if (state.loading) return;
+    state.loading = true;
+    // Avval telefondagi oxirgi nusxani darhol ko'rsatamiz, keyin serverdan yangisini olamiz
+    if (!force) {
+      var cached = dget(ym);
+      if (cached && cached.sections) {
+        state.data = cached;
+        if (state.br && branches().indexOf(state.br) < 0) state.br = '';
+        render(false);
+      }
+    }
+    var lbl = ym && state.data ? (state.data.months.filter(function (m) { return m.ym === ym; })[0] || {}).label : '';
+    setBusy(true, lbl ? lbl + ' yuklanmoqda…' : (state.data ? 'Yangilanmoqda…' : ''));
+    fetchData(ym, force, function (d) {
+      state.loading = false;
+      setBusy(false);
+      if (!d || d.ok === false) {
+        if (state.data && d && d.code === 'error') { render(false); toast('Xatolik: ' + (d.message || ''), 4000); return; }
+        denied(d || {});
+        return;
+      }
+      state.data = d;
+      dset(ym, d);
+      if (!ym && d.period) dset(d.period.ym, d);
+      if (state.br && branches().indexOf(state.br) < 0) state.br = '';
+      render(false);
+      if (force) toast('Yangilandi', 1500);
+    }, fail);
+  }
+  function fail(err) {
+    state.loading = false; setBusy(false);
+    var msg = (err && err.message) || String(err);
+    if (state.data) { render(false); toast('Xatolik: ' + msg, 4000); }
+    else $('#main').innerHTML = errorBox('Ma\'lumotni yuklab bo\'lmadi: ' + msg);
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tab],[data-br],[data-goto],[data-retry],[data-metric],[data-copy],.tcol[data-ym],#refresh');
+    if (!t) return;
+    if (t.id === 'refresh') { load(state.data ? state.data.period.ym : INIT_YM, true); return; }
+    if (t.hasAttribute('data-retry')) { load(state.data ? state.data.period.ym : INIT_YM, true); return; }
+    if (t.hasAttribute('data-copy')) {
+      var v = t.getAttribute('data-copy');
+      try { navigator.clipboard.writeText(v).then(function () { toast('Nusxalandi', 1500); }); } catch (er) { toast(v, 3000); }
+      return;
+    }
+    if (t.hasAttribute('data-metric')) { state.metric = t.getAttribute('data-metric'); LS.set('metric', state.metric); haptic(); render(false); return; }
+    if (t.classList.contains('tcol')) { var ym = t.getAttribute('data-ym'); if (state.data && ym !== state.data.period.ym) { haptic(); load(ym, false); } return; }
+    if (t.hasAttribute('data-tab')) { state.tab = t.getAttribute('data-tab'); LS.set('tab', state.tab); haptic(); render(true); return; }
+    if (t.hasAttribute('data-br')) { state.br = t.getAttribute('data-br'); LS.set('br', state.br); haptic(); render(false); return; }
+    if (t.hasAttribute('data-goto')) { state.br = t.getAttribute('data-goto'); state.tab = 'umumiy'; LS.set('br', state.br); LS.set('tab', state.tab); haptic(); render(true); }
+  });
+  $('#month').addEventListener('change', function (e) { haptic(); load(e.target.value, false); });
+
+  renderTabbar();
+  load(INIT_YM, false);
+})();
+</script>
+</body>
+</html>
