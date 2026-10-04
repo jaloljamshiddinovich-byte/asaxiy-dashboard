@@ -531,14 +531,21 @@ details.card[open] summary{margin-bottom:8px}
     h += trendCard();
 
     var other = isNum(pbt) && isNum(op) ? pbt - op : null, tax = isNum(net) && isNum(pbt) ? net - pbt : null;
+    var n0 = function (x) { return isNum(x) ? x : 0; };
+    var opRest = isNum(exp) ? exp - n0(adm) - n0(sal) - n0(pay) : null;
+    var kred = get(1, "Kredit to'lovi", b), cheg = get(1, 'Chegirma', b), dsol = get(1, "Daromad solig'i", b);
+    var otherRest = isNum(other) ? other + n0(kred) + n0(cheg) + n0(dsol) : null;
     var lines = [
       ['Umumiy sotuv', sales, 'tot'], ['Murobaha', get(1, 'Murobaha', b), 'sub'], ['Avtomato (retail)', get(1, 'Avtomato', b), 'sub'],
       ['Fin tech ustamasi', get(1, 'FIN TECH', b), 'sub'], ['Bonus 5%', get(1, 'Bonus', b), 'sub'], ['Murobaha bonusi 2,5%', get(1, 'Murobaha bonusi', b), 'sub'],
       ['Naqd savdo va peredoplata', sum2(get(1, 'Naqd savdo', b), get(1, "Peredoplata to'lov", b)), 'sub'],
       ['Tannarx', isNum(cogs) ? -cogs : null, ''], ['Yalpi foyda', gross, 'tot'],
       ['ADM xarajatlar', isNum(adm) ? -adm : null, ''], ['Oylik (ishchilar)', isNum(sal) ? -sal : null, ''],
-      ["To'lov tizimlari", isNum(pay) ? -pay : null, ''], ['Operatsion foyda', op, 'tot'],
-      ['Boshqa kirim/chiqim, kurs farqi', other, ''], ['Soliq', tax, ''], ['Sof foyda', net, 'grand']
+      ["To'lov tizimlari", isNum(pay) ? -pay : null, ''], ['Komissiyalar (avtomato, pul yechish)', isNum(opRest) ? -opRest : null, ''],
+      ['Operatsion foyda', op, 'tot'],
+      ["Kredit to'lovi", isNum(kred) ? -kred : null, ''], ['Chegirma (avtomato)', isNum(cheg) ? -cheg : null, ''],
+      ["Daromad solig'i", isNum(dsol) ? -dsol : null, ''], ['Boshqa kirim, inventarizatsiya, kurs farqi', otherRest, ''],
+      ['Soliq', tax, ''], ['Sof foyda', net, 'grand']
     ];
     var pl = '<div class="pl">' + lines.filter(function (l) { return !((l[2] === '' || l[2] === 'sub') && (!isNum(l[1]) || Math.abs(l[1]) < 0.5) && l[0] !== 'Tannarx'); }).map(function (l) {
       var cls = l[2];
@@ -631,10 +638,12 @@ details.card[open] summary{margin-bottom:8px}
   function vExpenses() {
     var b = state.br || null, nm = b ? bname(b) : 'Barcha filiallar';
     var exp = get(1, 'Umumiy xarajat', b), adm = get(1, 'ADM xarajatlar', b), sal = get(1, 'Oylik ishchilar', b), pay = get(1, "To'lov tizimlari", b);
+    var kom = isNum(exp) ? exp - (isNum(adm) ? adm : 0) - (isNum(sal) ? sal : 0) - (isNum(pay) ? pay : 0) : null;
     var r = get(2, 'Umumiy xarajat / Sotuv', b), c = b ? {} : cmpTotal('Umumiy xarajat'), sales = get(1, 'Umumiy sotuv', b);
     var H = hero('Umumiy xarajat · ' + nm, money(exp), hdelta(c.cur, c.prev, false), sales > 0 ? 'Sotuvning <b>' + pct(r) + '</b> qismi' : 'Bu davrda sotuv yo\'q');
     var h = card('Xarajat turlari', stacked([
-      { name: 'ADM xarajatlar', value: adm, color: '--s1' }, { name: 'Oylik (ishchilar)', value: sal, color: '--s2' }, { name: "To'lov tizimlari", value: pay, color: '--s3' }
+      { name: 'ADM xarajatlar', value: adm, color: '--s1' }, { name: 'Oylik (ishchilar)', value: sal, color: '--s2' }, { name: "To'lov tizimlari", value: pay, color: '--s3' },
+      { name: 'Komissiyalar', value: isNum(kom) && Math.abs(kom) >= 0.5 ? kom : null, color: '--s4' }
     ]) + (b ? '' : (function () {
       var a = cmpTotal('ADM xarajatlar'), o = cmpTotal('Oylik ishchilar');
       return '<p class="note">ADM: ' + (delta(a.cur, a.prev, false) || '—') + '<br>Oylik: ' + (delta(o.cur, o.prev, false) || '—') + '</p>';
