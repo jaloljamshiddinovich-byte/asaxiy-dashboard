@@ -483,6 +483,23 @@ details.card[open] summary{margin-bottom:8px}
     return { sales: { cur: v[0], prev: v[1] }, gross: { cur: v[2], prev: v[3] }, net: { cur: v[4], prev: v[5] }, op: {}, exp: {} };
   }
 
+  function sum2(a, c) { return isNum(a) || isNum(c) ? (isNum(a) ? a : 0) + (isNum(c) ? c : 0) : null; }
+  /* Retail / Fin tech / Undiruv (Analitika 10-bo'lim) */
+  function dirCard() {
+    var S = row(10, 'Umumiy sotuv'), E = row(10, 'Umumiy xarajat'), N = row(10, 'Sof foyda'), M = row(10, 'Sof marja');
+    if (!S || !N) return '';
+    var dirs = [['Retail', 0, 5], ['Fin tech', 1, 6], ['Undiruv', 2, 7]];
+    return '<div class="sectitle">Yo\'nalishlar bo\'yicha</div>' + dirs.map(function (d) {
+      var net = N.v[d[1]], netP = N.v[d[2]];
+      return '<section class="card bc rise"><div class="hd"><span class="nm"><span class="ic">' + ic(ICON.pulse) + '</span>' + esc(d[0]) + '</span>' +
+        (isNum(net) && net !== 0 ? (net > 0 ? status('good', 'Foyda') : status('crit', 'Zarar')) : '') + '</div>' +
+        '<div class="g3"><div><div class="k">Daromad</div><div class="v">' + money(S.v[d[1]]) + '</div></div>' +
+        '<div><div class="k">Xarajat</div><div class="v">' + money(E ? E.v[d[1]] : null) + '</div></div>' +
+        '<div><div class="k">Sof foyda</div><div class="v">' + money(net) + '</div></div></div>' +
+        '<div class="ft"><span>' + (delta(net, netP, true) || '&nbsp;') + '</span><span>Marja ' + pct(M ? M.v[d[1]] : null) + '</span></div></section>';
+    }).join('') + '<p class="note">Avtomato bonusi 2,5% — Fin tech xarajati va Undiruv daromadi (ichki hisob-kitob, jamida chiqarib tashlangan).</p>';
+  }
+
   function vOverview() {
     var b = state.br || null, nm = b ? bname(b) : 'Barcha filiallar';
     var sales = get(1, 'Umumiy sotuv', b), cogs = get(1, 'Tannarx', b), gross = get(1, 'Yalpi foyda', b),
@@ -515,22 +532,28 @@ details.card[open] summary{margin-bottom:8px}
 
     var other = isNum(pbt) && isNum(op) ? pbt - op : null, tax = isNum(net) && isNum(pbt) ? net - pbt : null;
     var lines = [
-      ['Umumiy sotuv', sales, 'tot'], ['Murobaha', get(1, 'Murobaha', b), 'sub'], ['Avtomato', get(1, 'Avtomato', b), 'sub'],
+      ['Umumiy sotuv', sales, 'tot'], ['Murobaha', get(1, 'Murobaha', b), 'sub'], ['Avtomato (retail)', get(1, 'Avtomato', b), 'sub'],
+      ['Fin tech ustamasi', get(1, 'FIN TECH', b), 'sub'], ['Bonus 5%', get(1, 'Bonus', b), 'sub'], ['Murobaha bonusi 2,5%', get(1, 'Murobaha bonusi', b), 'sub'],
+      ['Naqd savdo va peredoplata', sum2(get(1, 'Naqd savdo', b), get(1, "Peredoplata to'lov", b)), 'sub'],
       ['Tannarx', isNum(cogs) ? -cogs : null, ''], ['Yalpi foyda', gross, 'tot'],
       ['ADM xarajatlar', isNum(adm) ? -adm : null, ''], ['Oylik (ishchilar)', isNum(sal) ? -sal : null, ''],
       ["To'lov tizimlari", isNum(pay) ? -pay : null, ''], ['Operatsion foyda', op, 'tot'],
       ['Boshqa kirim/chiqim, kurs farqi', other, ''], ['Soliq', tax, ''], ['Sof foyda', net, 'grand']
     ];
-    var pl = '<div class="pl">' + lines.filter(function (l) { return !(l[2] === '' && (!isNum(l[1]) || Math.abs(l[1]) < 0.5) && l[0] !== 'Tannarx'); }).map(function (l) {
+    var pl = '<div class="pl">' + lines.filter(function (l) { return !((l[2] === '' || l[2] === 'sub') && (!isNum(l[1]) || Math.abs(l[1]) < 0.5) && l[0] !== 'Tannarx'); }).map(function (l) {
       var cls = l[2];
       var p = isNum(l[1]) && !noSales ? pct(l[2] === 'tot' || l[2] === 'grand' ? l[1] / sales : Math.abs(l[1]) / sales) : '';
       return '<div class="' + cls + '">' + esc(l[0]) + '</div><div class="r ' + cls + '">' + (l[2] === '' ? moneyS(l[1]) : money(l[1])) + '</div><div class="p">' + p + '</div>';
     }).join('') + '</div>';
     h += card('Foyda va zarar', pl, noSales ? '' : '% — sotuvdan');
 
-    var mur = get(1, 'Murobaha', b), avt = get(1, 'Avtomato', b), pre = get(1, "Peredoplata to'lov", b), cash = get(1, 'Naqd savdo', b);
-    h += card('Sotuv tarkibi', stacked([{ name: 'Murobaha', value: mur, color: '--s1' }, { name: 'Avtomato', value: avt, color: '--s2' }]) +
-      ((pre || cash) ? '<p class="note">Alohida qatorlar: Peredoplata to\'lov ' + money(pre) + ' · Naqd savdo ' + money(cash) + '</p>' : ''));
+    var mur = get(1, 'Murobaha', b), avt = get(1, 'Avtomato', b), ft = get(1, 'FIN TECH', b), bon = get(1, 'Bonus', b), cb = get(1, 'Murobaha bonusi', b),
+      pre = get(1, "Peredoplata to'lov", b), cash = get(1, 'Naqd savdo', b);
+    h += card('Sotuv tarkibi', stacked([
+      { name: 'Murobaha', value: mur, color: '--s1' }, { name: 'Avtomato', value: avt, color: '--s2' }, { name: 'Fin tech', value: ft, color: '--s3' },
+      { name: 'Bonus 5%', value: bon, color: '--s4' }, { name: 'Bonus 2,5%', value: cb, color: '--s5' }
+    ]) + ((pre || cash) ? '<p class="note">Alohida qatorlar: Peredoplata to\'lov ' + money(pre) + ' · Naqd savdo ' + money(cash) + '</p>' : ''));
+    if (!b) h += dirCard();
 
     if (!b) {
       var ins = sec(8).rows.map(function (r) {
@@ -810,7 +833,7 @@ details.card[open] summary{margin-bottom:8px}
       // Qayta urinishda force olib tashlanadi: server birinchi so'rovda hisoblab saqlab qo'ygan bo'ladi
       var url = API_URL + (tries > 1 ? q.replace('&force=1', '') : q);
       fetch(url).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(ok).catch(function (err) {
-        if (tries < 4) setTimeout(go, 2000 * tries); else fail(err);
+        if (tries < 6) setTimeout(go, 1500 * tries); else fail(err);
       });
     })();
   }
